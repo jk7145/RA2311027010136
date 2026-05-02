@@ -33,3 +33,5 @@ Open **http://localhost:3000** (required port for the evaluation frontend).
 ## Submission media
 
 Add desktop and mobile screenshots plus your walkthrough video under `docs/submission/` (see `docs/submission/README.md`).
+
+
