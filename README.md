@@ -19,7 +19,7 @@ From the repository root:
 npm run dev
 ```
 
-Open **http://localhost:3000** (required port for the evaluation frontend).
+Open **http://localhost:3001** (required port for the evaluation frontend).
 
 ## Packages
 
