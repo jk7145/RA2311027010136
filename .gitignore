@@ -5,12 +5,15 @@ package-lock.json
 # Build outputs
 dist/
 build/
+.next/
+out/
 *.log
 
 # Environment files
 .env
 .env.local
 .env.*
+!.env.example
 
 # IDE
 .vscode/
@@ -22,8 +25,8 @@ build/
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
+# Logs (root-only folder; do not use bare "logs/" — it ignores API routes named logs)
+/logs/
 *.log
 npm-debug.log*
 

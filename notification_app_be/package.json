@@ -1,0 +1,9 @@
+{
+  "name": "notification_app_be",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reserved for future backend services (evaluation layout).",
+  "scripts": {
+    "start": "node -e \"console.log('Backend placeholder: extend with your API when needed.')\""
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "campus-notifications-workspace",
+  "private": true,
+  "workspaces": [
+    "logging-middleware",
+    "notification_app_fe",
+    "notification_app_be"
+  ],
+  "scripts": {
+    "build:middleware": "npm run build -w @campus/logging-middleware",
+    "dev": "npm run dev -w notification_app_fe",
+    "build": "npm run build -w @campus/logging-middleware && npm run build -w notification_app_fe"
+  }
+}

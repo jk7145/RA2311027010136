@@ -1,61 +1,60 @@
 # Notification System Design
 
 ## Overview
-This document outlines the design for the notification system, consisting of:
-- Backend API (notification_app_be)
-- Frontend React App (notification_app_fe)
-- Logging Middleware (logging-middleware)
+
+This repository hosts the campus notifications workspace: a reusable logging client, a Next.js frontend on `http://localhost:3000`, and a placeholder backend folder for future services.
 
 ## Architecture
 
-### Backend (notification_app_be)
-- REST API for managing notifications
-- Endpoints for creating, reading, updating, and deleting notifications
-- Integration with logging middleware
+- **logging-middleware** — shared `Log(stack, level, package, message)` transport (browser posts through the Next.js relay; Node posts directly during server startup and API handlers).
+- **notification_app_fe** — Next.js + Material UI app with `/notifications` (paged inbox) and `/priority` (top‑N unread ranking).
+- **notification_app_be** — reserved for future API work; not required for the Stage 2 UI deliverable.
 
-### Frontend (notification_app_fe)
-- React-based user interface
-- Display and manage notifications
-- Real-time updates
+## Stage 1
 
-### Logging Middleware
-- Request/response logging
-- Error tracking
-- Performance monitoring
+### Priority ordering
 
-## Data Models
+Unread candidates are ranked by:
 
-### Notification
-- id: unique identifier
-- title: notification title
-- message: notification body
-- type: type of notification (info, warning, error, success)
-- read: boolean read status
-- createdAt: timestamp
-- userId: associated user
+1. **Category weight** — `Placement` (3) > `Result` (2) > `Event` (1).
+2. **Recency** — newer `Timestamp` wins when weights tie.
 
-## API Endpoints
+The reference implementation sorts the unread pool and slices the first *n* items. The same comparator is reused in the frontend priority page so behaviour stays aligned with the written spec.
 
-### REST API
-- `GET /api/notifications` - List all notifications
-- `POST /api/notifications` - Create new notification
-- `GET /api/notifications/:id` - Get single notification
-- `PUT /api/notifications/:id` - Update notification
-- `DELETE /api/notifications/:id` - Delete notification
-- `PATCH /api/notifications/:id/read` - Mark as read
+### Keeping top‑K efficiently under streaming updates
 
-## Technology Stack
+When notifications arrive continuously, maintaining the top *K* unread items can be done with a **binary min‑heap of size K** over the composite score `weight * largeConstant + epochMillis`:
 
-### Backend
-- Node.js / Express
-- Database (MongoDB/PostgreSQL)
-- JWT authentication
+- Each insert or refresh is **O(log K)**.
+- The heap root always holds the weakest item in the current top‑K set, so evicting or replacing is cheap when a better notification appears.
 
-### Frontend
-- React
-- Redux/Context API
-- Axios for API calls
+For the evaluation UI, a bounded fetch window plus client sort is sufficient; the heap approach is what you would use at higher scale without touching a database.
+
+## Stage 2
+
+### UX
+
+- **All notifications** — Material cards, type filter (`notification_type` query), limit/page controls, optimistic prev/next paging, bulk “mark page as viewed”.
+- **Priority inbox** — slider for top‑N (5–30), optional type filter on the fetched pool, unread‑only ranking, refresh and bulk mark actions.
+- **New vs viewed** — persisted in `localStorage` under `campus_notifications_viewed_v1`; cards show a “New” chip until opened.
+
+### API integration
+
+Browser code calls same-origin routes under `/api/evaluation/*`, which attach the bearer token from `EVALUATION_ACCESS_TOKEN` and forward to the evaluation host. This avoids exposing secrets to the client bundle and sidesteps CORS restrictions.
 
 ### Logging
-- Winston/Pino logger
-- Morgan for HTTP logging
+
+Application diagnostics use the shared middleware (`initLogTransport` + `Log`). `console.*` is avoided in feature code paths.
+
+## Local development
+
+```bash
+npm install
+npm run build -w @campus/logging-middleware
+cd notification_app_fe
+cp .env.example .env.local
+# set EVALUATION_ACCESS_TOKEN, then:
+npm run dev
+```
+
+The dev server listens on **port 3000** as required.
